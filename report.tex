@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\title{Compressed Sensing}
+%\author{Ulrich P}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+
+Short overwiew of matrix completion:
+
+$$\min ||X||_* \ \ \ s. t. \ \ \ AX = B$$
+
+We need to find the min rank $X$ such that $AX = B$
+
+\section{Douglas- Rachford Splitting}
+
+In the noiseless case we can use DRS to solve this numerically via a fixed-point iteration: 
+$$z^{(k+1)} = z^{(k)} + Prox_{\gamma g}\Big(2 Prox_{\gamma f}(z^{(k)}) - z^{(k)}\Big) - Prox_{\gamma g}(z^{(k)})$$
+We know that for $f = \delta_C$ with $C = \lbrace X | AX = B \rbrace$ we obtain
+\begin{align*}
+Prox_{\gamma f}(x) = \Pi_C(x) &= x + A^+(b-Ax)
+\\ &= x + A^T(A A^T)^{-1}(b - Ax)
+\\ &= x + A^T(b-Ax)
+\end{align*}
+and via the SVD
+\begin{align*}
+Prox_{\gamma g}(x) &= U S_\delta(\sigma(x))V^T
+\\ &= U (\sigma(x) - \gamma)_{+} V^T
+\end{align*}
+\end{document}
