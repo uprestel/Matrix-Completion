@@ -19,6 +19,10 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
+\DeclareMathOperator{\Prox}{Prox}
+\DeclareMathOperator{\diag}{diag}
+
+
 \begin{document}
 
 \maketitle
@@ -34,16 +38,16 @@ We need to find the min rank $X$ such that $AX = B$
 \section{Douglas- Rachford Splitting}
 
 In the noiseless case we can use DRS to solve this numerically via a fixed-point iteration: 
-$$z^{(k+1)} = z^{(k)} + Prox_{\gamma g}\Big(2 Prox_{\gamma f}(z^{(k)}) - z^{(k)}\Big) - Prox_{\gamma g}(z^{(k)})$$
+$$z^{(k+1)} = z^{(k)} + \Prox_{\gamma g}\Big(2 \Prox_{\gamma f}(z^{(k)}) - z^{(k)}\Big) - \Prox_{\gamma g}(z^{(k)})$$
 We know that for $f = \delta_C$ with $C = \lbrace X | AX = B \rbrace$ we obtain
 \begin{align*}
-Prox_{\gamma f}(x) = \Pi_C(x) &= x + A^+(b-Ax)
+\Prox_{\gamma f}(x) = \Pi_C(x) &= x + A^+(b-Ax)
 \\ &= x + A^T(A A^T)^{-1}(b - Ax)
 \\ &= x + A^T(b-Ax)
 \end{align*}
 and via the SVD
 \begin{align*}
-Prox_{\gamma g}(x) &= U S_\delta(\sigma(x))V^T
+\Prox_{\gamma g}(x) &= U S_\delta(\sigma(x))V^T
 \\ &= U (\sigma(x) - \gamma)_{+} V^T
 \end{align*}
 
@@ -60,9 +64,9 @@ $$\min_X f(x) + g(x)$$
 
 where we assume $f$ and $g$ to be sufficiently smooth, i.e. $f \in C^{1,1}(\mathbb{R}^n)$, which means
 
-$$\exists L(f) : ||\nabla f(x) - \nabla f(y)|| \leq ||x - y|| \forall x,y \in \mathbb{R}^n$$
+$$\exists L(f) : ||\nabla f(x) - \nabla f(y)|| \leq L(f)||x - y|| \forall x,y \in \mathbb{R}^n$$
 
-In our case we have $f(x) = \frac{1}{2} ||AX - B||_2^2$ and $g(x) =  \lambda||X||_*$ and by simple calculation: $L(f) = 2\lambda_{max}(A^TA)$
+In our case we have $f(x) = \frac{1}{2} ||AX - B||_2^2$ and $g(x) =  \lambda||X||_*$ and by simple calculation: $L(f) = 2\lambda_{\max}(A^TA)$
 \begin{algorithm}[H]
 \caption{FISTA with constant step size}
 \hspace*{\algorithmicindent} \textbf{Input} Lipschitz- constant $L(f)$ of $\nabla f$, $y_1 = x_0 \in \mathbb{R}^n, t_1=1$
@@ -80,12 +84,12 @@ In this algorithm we def.
 \begin{align*}
 Q_L(x,y) &= f(y) + \langle x-y, \nabla f(y) \rangle + \frac{L(f)}{2} ||x-y||^2 + g(x)\\
 p_L(y) &= \argmin_x Q_L(x,y)\\
-&= \argmin_x \Big( g(x) + \frac{L(f)}{2} \Big\| x - \Big( y - \frac{1}{L}\Big)\Big\|^2 \Big)\\
-&= Prox_{1/L g}(y - \frac{1}{L}\nabla f(y))
+&= \argmin_x \Big( g(x) + \frac{L(f)}{2} \Big\| x - \Big( y - \frac{1}{L} \nabla f(y)\Big)\Big\|^2 \Big)\\
+&= \Prox_{1/L g}(y - \frac{1}{L}\nabla f(y))
 \end{align*}
-To simplfify this expression further, we examine the the SVD of the input matrix of $p_L$, which we call $B$ for now. It turns out we arrive at a singular value thresholding step: Let $B = U \Sigma V^T = U diag(\sigma(b)) V^T$ and
-$$Prox_{\lambda g}(B) = U diag(\sigma(B) - \lambda)_+ V^T$$
-which finally reveals $Prox_{1/L g} \Big(y - \frac{1}{L} \nabla f(y) \Big) = U diag \Big(\sigma(y - \frac{1}{L} \nabla f(y)) - \frac{1}{L}\Big)_+ V^T$
+To simplfify this expression further, we examine the the SVD of the input matrix of $p_L$, which we call $B$ for now. It turns out we arrive at a singular value thresholding step: Let $B = U \Sigma V^T = U \diag(\sigma(b)) V^T$ and
+$$\Prox_{\lambda g}(B) = U \diag(\sigma(B) - \lambda)_+ V^T$$
+which finally reveals $\Prox_{1/L g} \Big(y - \frac{1}{L} \nabla f(y) \Big) = U \diag \Big(\sigma(y - \frac{1}{L} \nabla f(y)) - \frac{1}{L}\Big)_+ V^T$
 
 
 \textbf{I'm not sure if this is correct}
