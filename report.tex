@@ -106,11 +106,11 @@ Q_L(x,y) &= f(y) + \langle x-y, \nabla f(y) \rangle + \frac{L(f)}{2} ||x-y||^2 +
 p_L(y) &= \argmin_x Q_L(x,y)\\
 &= \argmin_x \Big( g(x) + \frac{L(f)}{2} \Big\| x - \Big( y - \frac{1}{L} \nabla f(y)\Big)\Big\|^2 \Big)\\
 &= \argmin_x \Big( \frac{g(x)}{\lambda} + \frac{L(f)}{2\lambda} \Big\| x - \Big( y - \frac{1}{L} \nabla f(y)\Big)\Big\|^2 \Big)\\
-&= \Prox_{g}^{\lambda/L} \Big(y - \frac{1}{L}\nabla f(y)\Big)
+&= \Prox_{g/\lambda}^{\lambda/L} \Big(y - \frac{1}{L}\nabla f(y)\Big)
 \end{align*}
 Since we are trying to find the proximal mapping for the nuclear norm, we can apply the thresholding operator just like in our iteration step for DRS. We get 
 \begin{align*}
-\Prox_{g}^{\lambda/L}  \Big(y - \frac{1}{L} \nabla f(y) \Big) &= U \diag \Big(\sigma \Big(y - \frac{1}{L} \nabla f(y)\Big) - \frac{\lambda}{L}\Big)_+ V^T\\
+\Prox_{g/\lambda}^{\lambda/L}  \Big(y - \frac{1}{L} \nabla f(y) \Big) &= U \diag \Big(\sigma \Big(y - \frac{1}{L} \nabla f(y)\Big) - \frac{\lambda}{L}\Big)_+ V^T\\
 &= \mathcal{D}_{\lambda / L}\Big(y - \frac{1}{L} \nabla f(y)\Big)\\
 &= \mathcal{D}_{\lambda / L}\Big(y - \frac{1}{L} A^T(Ay - B)\Big)
 \end{align*}
