@@ -16,6 +16,8 @@
 \makeatother
 
 
+
+\numberwithin{equation}{section}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -26,6 +28,12 @@
 \begin{document}
 
 \maketitle
+
+\section{Preliminaries}
+
+We define useful mappings used in convex optimization, namely the proximal mapping
+
+$$\Prox_f^\lambda(y) = \argmin_x \Big( f(x) + \frac{1}{2 \lambda} || x - y|| \Big)$$
 
 \section{Overview}
 
@@ -38,17 +46,18 @@ We need to find the min rank $X$ such that $AX = B$
 \section{Douglas- Rachford Splitting}
 
 In the noiseless case we can use DRS to solve this numerically via a fixed-point iteration: 
-$$z^{(k+1)} = z^{(k)} + \Prox_{\gamma g}\Big(2 \Prox_{\gamma f}(z^{(k)}) - z^{(k)}\Big) - \Prox_{\gamma g}(z^{(k)})$$
-We know that for $f = \delta_C$ with $C = \lbrace X | AX = B \rbrace$ we obtain
+$$z^{(k+1)} = z^{(k)} + \Prox_{g}^\gamma\Big(2 \Prox_{f}^\gamma(z^{(k)}) - z^{(k)}\Big) - \Prox_{g}^\gamma(z^{(k)})$$
+To do this, we express our objective as a sum of two functions $f + g$ where $f(X) = \delta_C(X)$ with $C = \lbrace X | AX = B \rbrace$ and $g(X) = ||X||_*$. We then obtain
 \begin{align*}
-\Prox_{\gamma f}(x) = \Pi_C(x) &= x + A^+(b-Ax)
+\Prox_{f}^\gamma(x) = \Pi_C(x) &= x + A^+(b-Ax)
 \\ &= x + A^T(A A^T)^{-1}(b - Ax)
 \\ &= x + A^T(b-Ax)
 \end{align*}
-and via the SVD
+To express the proximal mapping of the nuclear norm, we define the singular value thresholding operator $\mathcal{D}_\gamma$. For a matrix $Y$ with the SVD
+$Y = U \Sigma V^T = U \diag(\sigma(Y)) V^T$ it is expressed by $\mathcal{D}_\gamma (Y) = U \diag(\sigma(Y) - \lambda)_+ V^T$. Thus we get
 \begin{align*}
-\Prox_{\gamma g}(x) &= U S_\delta(\sigma(x))V^T
-\\ &= U (\sigma(x) - \gamma)_{+} V^T
+\Prox_{g}^\gamma(x) &= U (\sigma(x) - \gamma)_{+} V^T
+\\ &= \mathcal{D}_\gamma(x)
 \end{align*}
 
 
@@ -56,8 +65,11 @@ and via the SVD
 
 In the noisy case we are trying to minimize the following objective (in the Lagrangian formulation):
 
-$$\min_X \lambda||X||_*  + \frac{1}{2} ||AX - B||_2^2$$
-
+\begin{align}
+\min_X \lambda||X||_*  + \frac{1}{2} ||AX - B||_2^2
+\label{fista_objective}
+\end{align}
+For some $\lambda > 0$.
 The FISTA algorithm is formulated with respect to the following objective:
 
 $$\min_X f(x) + g(x)$$
@@ -66,7 +78,15 @@ where we assume $f$ and $g$ to be sufficiently smooth, i.e. $f \in C^{1,1}(\math
 
 $$\exists L(f) : ||\nabla f(x) - \nabla f(y)|| \leq L(f)||x - y|| \forall x,y \in \mathbb{R}^n$$
 
-In our case we have $f(x) = \frac{1}{2} ||AX - B||_2^2$ and $g(x) =  \lambda||X||_*$ and by simple calculation: $L(f) = 2\lambda_{\max}(A^TA)$
+In our case we have $f(x) = \frac{1}{2} ||AX - B||_2^2 = \frac{1}{2}\langle AX - B, AX - B \rangle$ and $g(x) =  \lambda||X||_*$ .By simple calculation we get 
+
+\begin{align}
+\nabla f(X) &= A^TAX - A^TB = A^T(AX - B) \label{nabla_eq}
+\\
+L(f) &= 2\lambda_{\max}(A^TA)
+\end{align}
+
+
 \begin{algorithm}[H]
 \caption{FISTA with constant step size}
 \hspace*{\algorithmicindent} \textbf{Input} Lipschitz- constant $L(f)$ of $\nabla f$, $y_1 = x_0 \in \mathbb{R}^n, t_1=1$
@@ -85,12 +105,15 @@ In this algorithm we def.
 Q_L(x,y) &= f(y) + \langle x-y, \nabla f(y) \rangle + \frac{L(f)}{2} ||x-y||^2 + g(x)\\
 p_L(y) &= \argmin_x Q_L(x,y)\\
 &= \argmin_x \Big( g(x) + \frac{L(f)}{2} \Big\| x - \Big( y - \frac{1}{L} \nabla f(y)\Big)\Big\|^2 \Big)\\
-&= \Prox_{1/L g}(y - \frac{1}{L}\nabla f(y))
+&= \argmin_x \Big( \frac{g(x)}{\lambda} + \frac{L(f)}{2\lambda} \Big\| x - \Big( y - \frac{1}{L} \nabla f(y)\Big)\Big\|^2 \Big)\\
+&= \Prox_{g}^{\lambda/L} \Big(y - \frac{1}{L}\nabla f(y)\Big)
 \end{align*}
-To simplfify this expression further, we examine the the SVD of the input matrix of $p_L$, which we call $B$ for now. It turns out we arrive at a singular value thresholding step: Let $B = U \Sigma V^T = U \diag(\sigma(b)) V^T$ and
-$$\Prox_{\lambda g}(B) = U \diag(\sigma(B) - \lambda)_+ V^T$$
-which finally reveals $\Prox_{1/L g} \Big(y - \frac{1}{L} \nabla f(y) \Big) = U \diag \Big(\sigma(y - \frac{1}{L} \nabla f(y)) - \frac{1}{L}\Big)_+ V^T$
-
+Since we are trying to find the proximal mapping for the nuclear norm, we can apply the thresholding operator just like in our iteration step for DRS. We get 
+\begin{align*}
+\Prox_{g}^{\lambda/L}  \Big(y - \frac{1}{L} \nabla f(y) \Big) &= U \diag \Big(\sigma \Big(y - \frac{1}{L} \nabla f(y)\Big) - \frac{\lambda}{L}\Big)_+ V^T\\
+&= \mathcal{D}_{\lambda / L}\Big(y - \frac{1}{L} \nabla f(y)\Big)\\
+&= \mathcal{D}_{\lambda / L}\Big(y - \frac{1}{L} A^T(Ay - B)\Big)
+\end{align*}
 
 \textbf{I'm not sure if this is correct}
 \end{document}
