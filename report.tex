@@ -36,15 +36,25 @@ We define useful mappings used in convex optimization, namely the proximal mappi
 $$\Prox_f^\lambda(y) = \argmin_x \Big( f(x) + \frac{1}{2 \lambda} || x - y|| \Big)$$
 
 \section{Overview}
+We are given an incomplete matrix $M$ with known entries $(i,j) \in \Omega$. In the general form matrix completion reads
 
-Short overwiew of matrix completion:
+$$\min ||X||_* \ \ \ s. t. \ \ \ \mathcal{A}(X) = B$$
+%We need to find the min rank $X$ such that $AX = B$
+where $\mathcal{A}$ is a linear map $\mathcal{A}:\mathbb{R}^{m \times n} \longrightarrow \mathbb{R}^{|\Omega|}$
 
-$$\min ||X||_* \ \ \ s. t. \ \ \ AX = B$$
-
-We need to find the min rank $X$ such that $AX = B$
-
+and $B$ encodes our knowlege of $M$.
+In our case we choose $ \mathcal{A} = \mathcal{P}_\Omega$ with
+$$
+[\mathcal{P}_\Omega(X)]_{i,j}= 
+\begin{cases}
+    X_{j+mi} & \text{if } (i,j) \in \Omega\\
+    0,              & \text{otherwise}
+\end{cases}
+$$
+We denote $A \ in \mathbb{R}^{|\Omega| \times mn}$ the matrix corresponding to the mapping $\mathcal{P}_\Omega$. 
+With this we can rewrite the objective above:
+$$\min ||X||_* \ \ \ s. t. \ \ \ \mathcal{P}_\Omega(X) = A\text{vec}(X) = B = \mathcal{P}_\Omega(M)$$
 \section{Douglas- Rachford Splitting}
-
 In the noiseless case we can use DRS to solve this numerically via a fixed-point iteration: 
 $$z^{(k+1)} = z^{(k)} + \Prox_{g}^\gamma\Big(2 \Prox_{f}^\gamma(z^{(k)}) - z^{(k)}\Big) - \Prox_{g}^\gamma(z^{(k)})$$
 To do this, we express our objective as a sum of two functions $f + g$ where $f(X) = \delta_C(X)$ with $C = \lbrace X | AX = B \rbrace$ and $g(X) = ||X||_*$. We then obtain
