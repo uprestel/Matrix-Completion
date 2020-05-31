@@ -1,4 +1,4 @@
-# CompSens_MatrixCompletion
+# Matrix Completion
 Project for the lecture "Compressed Sensing"
 
 
